@@ -45,7 +45,32 @@ namespace metabase_exporter
             {
                 var oldDashboardId = dashboard.Id;
                 dashboard.Id = dashboardMapping.GetOrThrow(dashboard.Id, "Dashboard not found in mapping");
-                var dashboardCardMapping = Renumber(dashboard.Cards.Select(x => x.Id).ToList());
+            try
+                {
+                    // Código original da linha 48 que causa a exceção
+                    var dashboards = api.GetAllDashboards().Select(d => d.ToExportedDashboard(cardMapping)).ToList(); 
+                }
+                catch (ArgumentNullException ex)
+                {
+                    Console.WriteLine($"Erro: {ex.Message}");
+                    Console.WriteLine($"Parâmetro nulo: {ex.ParamName}"); 
+
+                    // Imprimir o valor de 'api.GetAllDashboards()' para verificar se é nulo
+                    Console.WriteLine($"api.GetAllDashboards() é nulo? : {api.GetAllDashboards() == null}"); 
+
+                    // Se 'api.GetAllDashboards()' não for nulo, iterar sobre ele para encontrar o elemento nulo
+                    if (api.GetAllDashboards() != null)
+                    {
+                        foreach (var dashboard in api.GetAllDashboards())
+                        {
+                            if (dashboard == null)
+                            {
+                                Console.WriteLine("Um dashboard é nulo.");
+                                break;
+                            }
+                        }
+                    }
+                }
                 foreach (var card in dashboard.Cards.OrderBy(x => x.Id))
                 {
                     card.Id = dashboardCardMapping.GetOrThrow(card.Id, $"Card not found in dashboard card mapping for dashboard {oldDashboardId}");
